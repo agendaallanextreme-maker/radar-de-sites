@@ -5,7 +5,7 @@ const brl = n => 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { maximumFractio
 const fmtDate = iso => iso ? new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
 const today = () => new Date().toISOString().slice(0, 10);
 const col = s => s >= 70 ? 'var(--crit)' : s >= 50 ? 'var(--warn)' : 'var(--ok)';
-const ISSUE_TONE = { nosite: 'c', offline: 'c', cert: 'c', slow: 'c', mobile: 'c', ssl: 'c', old: 'w', broken: 'w', seo: 'w' };
+const ISSUE_TONE = { nosite: 'c', offline: 'c', notfound: 'c', cert: 'c', slow: 'c', mobile: 'c', ssl: 'c', old: 'w', broken: 'w', seo: 'w' };
 const PART_LABEL = { perf: ['Velocidade', 30], tech: ['Tecnologia antiga', 25], mobile: ['Celular', 15], security: ['Segurança (HTTPS)', 15], seo: ['SEO básico', 15] };
 const SOURCE = { google: 'Google Maps', osm: 'OpenStreetMap', csv: 'Lista CSV' };
 
@@ -49,7 +49,7 @@ function filtered() {
 function renderFilters() {
   const counts = {};
   for (const l of S.leads) for (const i of l.issues || []) counts[i] = (counts[i] || 0) + 1;
-  const keys = ['nosite', 'slow', 'old', 'mobile', 'ssl', 'broken', 'offline', 'cert', 'seo'].filter(k => counts[k]);
+  const keys = ['nosite', 'slow', 'old', 'mobile', 'ssl', 'broken', 'offline', 'notfound', 'cert', 'seo'].filter(k => counts[k]);
   $('#filters').innerHTML = `<button class="chip" aria-pressed="${ui.filt === 'all'}" data-f="all">Todos <span class="count">${S.leads.length}</span></button>` +
     keys.map(k => `<button class="chip" aria-pressed="${ui.filt === k}" data-f="${k}">${esc(S.issueLabels[k])} <span class="count">${counts[k]}</span></button>`).join('');
   const sOpts = `<option value="">Todas as buscas</option>` + S.searches.map(s => `<option value="${s.id}" ${ui.search === s.id ? 'selected' : ''}>${esc(s.niche)}${s.city ? ' · ' + esc(s.city) : ''}</option>`).join('');

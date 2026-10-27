@@ -231,6 +231,8 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+// Recalcula score e argumento com as regras atuais (não refaz a análise)
+for (const l of S().leads) if (l.status === 'ok') refresh(l);
 // Retoma análises interrompidas
 for (const l of S().leads) if (l.status === 'analisando') l.status = 'pendente';
 for (const s of S().searches) if (s.status === 'buscando' || s.status === 'na fila') { s.status = 'erro'; s.error = 'Interrompida ao fechar o programa. Rode de novo.'; }
