@@ -1,0 +1,12 @@
+{
+  "name": "radar-de-sites",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Encontra sites lentos, antigos ou quebrados e organiza as oportunidades num funil de vendas.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/radar.test.js"
+  },
+  "engines": { "node": ">=18.17" }
+}

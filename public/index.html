@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar de Sites</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>body{margin:0}</style>
+</head>
+<body>
+<div class="app">
+  <aside class="nav">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="13" cy="13" r="6" fill="none" stroke="var(--accent)" stroke-width="2" opacity=".5"/><path d="M13 13 L22 6" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="9.3" r="2" fill="var(--crit)"/></svg>
+      Radar de Sites
+    </div>
+    <ul>
+      <li><button data-view="ops" aria-current="true">Oportunidades <span class="count" id="c-ops"></span></button></li>
+      <li><button data-view="funil">Funil de vendas <span class="count" id="c-funil"></span></button></li>
+      <li><button data-view="buscas">Buscas <span class="count" id="c-buscas"></span></button></li>
+      <li><button data-view="config">Configurações</button></li>
+    </ul>
+    <div class="foot"><span class="queue" id="queue"></span><br>Dados salvos em <code>data/db.json</code>.</div>
+  </aside>
+
+  <main>
+    <section class="view" id="v-ops">
+      <div>
+        <h1>Oportunidades</h1>
+        <p class="sub">Negócios com site lento, antigo ou quebrado, ordenados pelo potencial de venda.</p>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="filters" id="filters">
+        <button class="chip" aria-pressed="true" data-f="all">Todos</button>
+      </div>
+      <div class="filters">
+        <input type="search" id="q" placeholder="Buscar por nome ou site">
+        <select class="f" id="f-search" aria-label="Busca"></select>
+        <select class="f" id="f-stage" aria-label="Etapa"></select>
+        <select class="f" id="f-min" aria-label="Score mínimo">
+          <option value="0">Qualquer score</option><option value="50">Score ≥ 50</option><option value="70">Score ≥ 70</option>
+        </select>
+        <div class="sort"><label for="sort">Ordenar</label><select id="sort"><option value="score">Maior score</option><option value="reviews">Mais avaliações</option><option value="old">Site mais antigo</option><option value="perf">Pior velocidade</option><option value="recent">Mais recentes</option></select></div>
+      </div>
+      <div class="work">
+        <div class="list" id="list" role="listbox" aria-label="Oportunidades"></div>
+        <div class="detail" id="detail"></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-funil" hidden>
+      <div><h1>Funil de vendas</h1><p class="sub">Arraste os cards entre as etapas. Ao abrir o WhatsApp de um negócio novo, ele entra em "Contatado" sozinho.</p></div>
+      <div class="kpis" id="funil-kpis"></div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <section class="view" id="v-buscas" hidden>
+      <div><h1>Buscas</h1><p class="sub">Escolha um segmento e uma cidade. O sistema encontra os negócios, analisa cada site e joga as oportunidades na lista.</p></div>
+      <form class="search wide" id="f-new">
+        <div class="field"><label for="n-niche">Segmento</label><input id="n-niche" placeholder="Ex.: dentista, advocacia, imobiliária" list="niches"></div>
+        <div class="field"><label for="n-city">Cidade</label><input id="n-city" placeholder="Ex.: Belo Horizonte, MG"></div>
+        <div class="field"><label for="n-source">Fonte</label>
+          <select id="n-source"><option value="osm">OpenStreetMap (grátis)</option><option value="google">Google Maps</option><option value="csv">Minha lista (CSV)</option></select></div>
+        <button class="btn" type="submit" id="n-go">Buscar e analisar</button>
+        <div class="field" id="csv-field" hidden style="grid-column:1/-1"><label for="n-csv">Arquivo CSV com colunas nome, site, telefone</label><input type="file" id="n-csv" accept=".csv,.txt"></div>
+        <p class="hint" id="src-hint" style="grid-column:1/-1;margin:0"></p>
+      </form>
+      <datalist id="niches"><option>Dentista</option><option>Advocacia</option><option>Imobiliária</option><option>Oficina mecânica</option><option>Restaurante</option><option>Academia</option><option>Clínica</option><option>Salão de beleza</option><option>Veterinário</option><option>Contabilidade</option><option>Hotel</option><option>Ótica</option><option>Escola</option><option>Fisioterapia</option></datalist>
+      <form class="search" id="f-manual" style="grid-template-columns:1fr 1fr auto">
+        <div class="field"><label for="m-site">Analisar um site específico</label><input id="m-site" placeholder="www.exemplo.com.br"></div>
+        <div class="field"><label for="m-name">Nome do negócio (opcional)</label><input id="m-name"></div>
+        <button class="btn ghost" type="submit">Analisar</button>
+      </form>
+      <div class="tbl"><table>
+        <thead><tr><th>Segmento</th><th>Cidade</th><th>Fonte</th><th>Status</th><th>Progresso</th><th style="text-align:right">Negócios</th><th style="text-align:right">Score ≥ 70</th><th>Quando</th><th></th></tr></thead>
+        <tbody id="searches"></tbody>
+      </table></div>
+    </section>
+
+    <section class="view" id="v-config" hidden>
+      <div><h1>Configurações</h1><p class="sub">As chaves ficam só neste computador, no arquivo de dados.</p></div>
+      <form class="panel" id="f-config">
+        <div class="field"><label for="s-google">Chave da API do Google (Places + PageSpeed)</label><input id="s-google" autocomplete="off" placeholder="AIza..."></div>
+        <p class="hint">Usada para buscar no Google Maps e para medir a velocidade dos sites. Como criar: no <a href="https://console.cloud.google.com/apis/library" target="_blank" rel="noopener">Google Cloud Console</a>, ative "Places API (New)" e "PageSpeed Insights API" e crie uma chave em Credenciais. O Google pede cartão, mas o uso abaixo da cota gratuita não é cobrado.</p>
+        <div class="grid2">
+          <div class="field"><label for="s-limit">Limite de consultas ao Google por mês</label><input id="s-limit" type="number" min="0"></div>
+          <div class="field"><label>Usadas neste mês</label><input id="s-usage" disabled></div>
+        </div>
+        <p class="hint">A cota gratuita é de 1.000 consultas por mês (cada consulta traz até 20 negócios). Acima disso o Google cobra US$ 35 por mil. O limite padrão de 900 deixa uma margem.</p>
+        <div class="field"><label for="s-psi">Chave só do PageSpeed (opcional)</label><input id="s-psi" autocomplete="off" placeholder="Se vazio, usa a chave do Google acima"></div>
+        <div class="field"><label for="s-name">Seu nome (vai na mensagem do WhatsApp)</label><input id="s-name"></div>
+        <div class="field"><label for="s-tpl">Mensagem padrão do WhatsApp</label><textarea id="s-tpl"></textarea></div>
+        <p class="hint">Use {empresa}, {meu_nome}, {problemas} e {site}. Deixe vazio para a mensagem padrão.</p>
+        <div><button class="btn" type="submit">Salvar</button></div>
+      </form>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="/app.js"></script>
+</body>
+</html>
