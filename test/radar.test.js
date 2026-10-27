@@ -106,3 +106,30 @@ test('CSV com ; aspas e acentos', () => {
   assert.strictEqual(rows[1].website, '');
   assert.deepStrictEqual(parseCsv('a,b\n1,2'), [['a', 'b'], ['1', '2']]);
 });
+
+test('endereço que abre página 404 vira "Página de erro"', async () => {
+  const a = await analyze(base + '/convenios', { skipPagespeed: true });
+  const lead = { name: 'Franquia', website: base, analysis: a };
+  Object.assign(lead, score(lead));
+  assert.deepStrictEqual(lead.issues, ['notfound']);
+  assert.strictEqual(lead.score, 85);
+  assert.match(pitch(lead), /página de erro 404/);
+});
+
+test('sem site e sem contato fica abaixo de sem site com telefone', () => {
+  assert.strictEqual(score({ name: 'A', website: '', phone: '31 99999-0000' }).score, 75);
+  assert.strictEqual(score({ name: 'B', website: '' }).score, 55);
+});
+
+test('mensagem do WhatsApp para site sem problemas não fala em problemas', () => {
+  const { whatsappMessage } = require('../lib/score');
+  const m = whatsappMessage({ name: 'Orthopride', issues: [] }, {});
+  assert.doesNotMatch(m, /encontrei|problema/);
+  assert.match(m, /Orthopride/);
+});
+
+test('nomes genéricos do OpenStreetMap são ignorados', () => {
+  const { GENERIC_NAME } = require('../lib/discover');
+  for (const n of ['Consultório', 'Clínica Odontológica', 'Dentista', 'Odontologia', 'X']) assert.ok(GENERIC_NAME.test(n), n);
+  for (const n of ['Núcleo Nova Suíça', 'Consultório Odontológico Dra. Cristiane', 'Vitória', 'Alivare Odontologia']) assert.ok(!GENERIC_NAME.test(n), n);
+});
